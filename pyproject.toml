@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fuel-tracking"
+version = "0.1.0"
+description = "CLI tool to analyze fuel usage, generate visualizations and PDF reports"
+readme = "README.md"
+authors = [{ name = "Zec-Wicks" }]
+requires-python = ">=3.9"
+dependencies = [
+  "pandas>=2.0",
+  "matplotlib>=3.7",
+  "seaborn>=0.12",
+  "reportlab>=4.0",
+]
+
+[project.scripts]
+fueltrack = "fuel_tracking.cli:main"
