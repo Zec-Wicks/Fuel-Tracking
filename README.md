@@ -15,7 +15,7 @@ A small Python tool to analyze fuel usage from a CSV, generate charts, and expor
 - `outputs/` — generated charts and reports
 - `pyproject.toml` — project metadata and dependencies
 
-## Install (editable)
+## Install
 
 ```bash
 python -m venv .venv
