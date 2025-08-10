@@ -1,3 +1,3 @@
-Date,Distance,PetrolFilled(Litres),PetrolType,TotalCost
-21/12/1234,123.4,12.34,E10,12.34
-21/12/1234,123.4,12.34,ULP98,12.34
+Date,Distance,PetrolFilled(Litres),TotalCost,PetrolType
+21/12/1234,123.4,12.34,12.34,E10
+21/12/1234,123.4,12.34,12.34,ULP98
