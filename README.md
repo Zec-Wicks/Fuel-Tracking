@@ -38,12 +38,6 @@ Specify a CSV and output directory:
 fueltrack path/to/data.csv --out results
 ```
 
-Print a sub-period summary to stdout (and still generate charts/PDF unless disabled):
-
-```bash
-fueltrack --start 2025-01-01 --end 2025-03-31
-```
-
 ## Data format
 
 Required columns (see `data.example.csv`):
