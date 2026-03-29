@@ -2,16 +2,14 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
-
 import pandas as pd
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 from .viz import data_visualisations
+from .stats import numeric_statistics
 
-
-
-def produce_report(data, report_title: str = "Fuel Consumption Report", outputs_dir: str | Path = "outputs") -> str:
+def produce_report(data: pd.DataFrame, report_title: str = "Fuel Consumption Report", outputs_dir: str | Path = "outputs") -> str:
     outputs_dir = Path(outputs_dir)
     outputs_dir.mkdir(parents=True, exist_ok=True)
 
@@ -21,78 +19,83 @@ def produce_report(data, report_title: str = "Fuel Consumption Report", outputs_
     y = height - 50
     line_spacing = 20
 
-    def draw_line(text: str):
+    def safe_round(value, decimals=2) -> str:
+        """Helper to handle NaT/NaN values without crashing the report."""
+        try:
+            if pd.isna(value):
+                return "N/A"
+            return f"{float(value):.{decimals}f}"
+        except (TypeError, ValueError):
+            return "N/A"
+
+    def draw_line(text: str, font="Helvetica", size=12):
         nonlocal y
         if y < 100:
             c.showPage()
             y = height - 50
+        c.setFont(font, size)
         c.drawString(50, y, text)
         y -= line_spacing
 
-    c.setFont("Helvetica-Bold", 18)
-    draw_line("Past 28 Days Fuel Consumption Report")
-
-    from .stats import numeric_statistics
-
+    # --- Section: Past 28 Days ---
     past_end = dt.datetime.now()
     past_start = past_end - pd.to_timedelta("28day")
-
+    
     current_totals = numeric_statistics(data, past_start, past_end, "sum", False)
     current_avg = numeric_statistics(data, past_start, past_end, "average", False)
 
-    c.setFont("Helvetica", 12)
-    draw_line(f"Total Cost: ${current_totals['TotalCost']:.2f}")
-    draw_line(f"Total Distance: {current_totals['Distance']:.2f} KM")
-    draw_line(f"Total Petrol Consumption: {current_totals['PetrolFilled(Litres)']:.2f} L")
-    draw_line(f"Fuel Economy: {round(current_avg['Kilometrage(L/100km)'], 2)}L / 100 KM")
-    draw_line(f"Cost Per Kilometre: ${round(current_avg['CostPerKilometre'], 2)}")
+    draw_line("Past 28 Days Fuel Consumption Report", "Helvetica-Bold", 18)
+    draw_line(f"Total Cost: ${safe_round(current_totals.get('TotalCost', 0))}")
+    draw_line(f"Total Distance: {safe_round(current_totals.get('Distance', 0))} KM")
+    draw_line(f"Total Petrol Consumption: {safe_round(current_totals.get('PetrolFilled(Litres)', 0))} L")
+    draw_line(f"Fuel Economy: {safe_round(current_avg.get('Kilometrage(L/100km)', 0))} L/100 KM")
+    draw_line(f"Cost Per Kilometre: ${safe_round(current_avg.get('CostPerKilometre', 0))}")
     draw_line("")
 
-    c.setFont("Helvetica-Bold", 18)
-    draw_line(f"{dt.datetime.now().year} Fuel Consumption Report")
-
-    year_start = dt.datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0)
-    year_end = dt.datetime.now().replace(month=12, day=31, hour=23, minute=59, second=59)
+    # --- Section: Current Year ---
+    year_now = dt.datetime.now().year
+    year_start = dt.datetime(year_now, 1, 1)
+    year_end = dt.datetime(year_now, 12, 31, 23, 59, 59)
 
     year_totals = numeric_statistics(data, year_start, year_end, "sum", False)
     year_avg = numeric_statistics(data, year_start, year_end, "average", False)
 
-    c.setFont("Helvetica", 12)
-    draw_line(f"Total Cost: ${year_totals['TotalCost']:.2f}")
-    draw_line(f"Total Distance: {year_totals['Distance']:.2f} KM")
-    draw_line(f"Total Petrol Consumption: {year_totals['PetrolFilled(Litres)']:.2f} L")
-    draw_line(f"Fuel Economy: {round(year_avg['Kilometrage(L/100km)'], 2)}L / 100 KM")
-    draw_line(f"Cost Per Kilometre: ${round(year_avg['CostPerKilometre'], 2)}")
+    draw_line(f"{year_now} Fuel Consumption Report", "Helvetica-Bold", 18)
+    draw_line(f"Total Cost: ${safe_round(year_totals.get('TotalCost', 0))}")
+    draw_line(f"Total Distance: {safe_round(year_totals.get('Distance', 0))} KM")
+    draw_line(f"Total Petrol Consumption: {safe_round(year_totals.get('PetrolFilled(Litres)', 0))} L")
+    draw_line(f"Fuel Economy: {safe_round(year_avg.get('Kilometrage(L/100km)', 0))} L/100 KM")
+    draw_line(f"Cost Per Kilometre: ${safe_round(year_avg.get('CostPerKilometre', 0))}")
     draw_line("")
 
-    from .io import load_data  # noqa: F401 (kept for future use/reference)
-
-    # All-time
+    # --- Section: All-Time ---
     all_time_totals = numeric_statistics(data, function="sum")
     all_time_avg = numeric_statistics(data, function="average")
 
-    c.setFont("Helvetica-Bold", 18)
-    draw_line("All-Time Fuel Consumption Report")
+    draw_line("All-Time Fuel Consumption Report", "Helvetica-Bold", 18)
+    draw_line(f"Total Cost: ${safe_round(all_time_totals.get('TotalCost', 0))}")
+    draw_line(f"Total Distance: {safe_round(all_time_totals.get('Distance', 0))} KM")
+    draw_line(f"Total Petrol Consumption: {safe_round(all_time_totals.get('PetrolFilled(Litres)', 0))} L")
+    draw_line(f"Fuel Economy: {safe_round(all_time_avg.get('Kilometrage(L/100km)', 0))} L/100 KM")
+    draw_line(f"Cost Per Kilometre: ${safe_round(all_time_avg.get('CostPerKilometre', 0))}")
 
-    c.setFont("Helvetica", 12)
-    draw_line(f"Total Cost: ${all_time_totals['TotalCost']:.2f}")
-    draw_line(f"Total Distance: {all_time_totals['Distance']:.2f} KM")
-    draw_line(f"Total Petrol Consumption: {all_time_totals['PetrolFilled(Litres)']:.2f} L")
-    draw_line(f"Fuel Economy: {round(all_time_avg['Kilometrage(L/100km)'], 2)}L / 100 KM")
-    draw_line(f"Cost Per Kilometre: ${round(all_time_avg['CostPerKilometre'], 2)}")
-
-    c.showPage()
-    y = height - 100
-
+    # --- Section: Visualizations ---
+    c.showPage()  # Move to a new page for charts
+    y = height - 50
+    
     fig_paths = data_visualisations(data, outputs_dir=outputs_dir)
 
     for fig_path in fig_paths.values():
-        if Path(fig_path).exists():
-            if y < 200:
+        path_obj = Path(fig_path)
+        if path_obj.exists() and path_obj.is_file():
+            # Check if there is enough room for the image (200px height + 50px margin)
+            if y < 250:
                 c.showPage()
                 y = height - 50
-            c.drawImage(str(fig_path), 50, y - 150, width=400, height=200)
-            y -= 230
+            
+            # Draw image (width 450 to fill page better, height 200)
+            c.drawImage(str(path_obj), 50, y - 200, width=450, height=200)
+            y -= 250 # Move down for the next chart
 
     c.save()
     return str(pdf_filename)
