@@ -19,9 +19,16 @@ A small Python tool to analyze fuel usage from a CSV, generate charts, and expor
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -U pip
 pip install -e .
+```
+
+To run the tests:
+
+```bash
+pip install -e ".[test]"
+pytest
 ```
 
 ## Usage
@@ -35,18 +42,22 @@ fueltrack
 Specify a CSV and output directory:
 
 ```bash
-fueltrack path/to/data.csv --out results
+fueltrack path/to/data.csv --out results --currency "$"
 ```
 
 ## Data format
 
 Required columns (see `data.example.csv`):
 
-- `Date` (parseable by pandas)
-- `Distance` (km)
+- `Date` (day-first, e.g. `21/12/2024`)
+- `Distance` (km driven since the previous fill-up)
 - `PetrolFilled(Litres)` (L)
 - `TotalCost` ($)
-- Optional: `PetrolType`
+- Optional: `PetrolType` (charts get one line per fuel type)
+
+Rows with an unparseable date or number are skipped with a warning. Fuel economy,
+price per litre and cost per km are calculated from totals, so a small top-up counts
+for less than a full tank.
 
 ## Notes
 

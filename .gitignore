@@ -10,8 +10,9 @@ __pycache__/
 .build/
 .dist/
 
-# Data
-data.csv
+# Data (personal fuel logs); keep the example schema tracked
+*.csv
+!data.example.csv
 
 # Visualisation Output
 outputs/

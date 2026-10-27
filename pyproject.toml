@@ -12,9 +12,14 @@ requires-python = ">=3.9"
 dependencies = [
   "pandas>=2.0",
   "matplotlib>=3.7",
-  "seaborn>=0.12",
   "reportlab>=4.0",
 ]
 
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
 [project.scripts]
 fueltrack = "fuel_tracking.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

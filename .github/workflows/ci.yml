@@ -1,4 +1,4 @@
-name: Dev Build
+name: CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  install:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -21,8 +21,12 @@ jobs:
       - name: Install in editable mode
         run: |
           python -m pip install -U pip
-          pip install -e .
+          pip install -e ".[test]"
 
-      - name: Run CLI (optional smoke test)
+      - name: Run tests
+        run: pytest
+
+      - name: Smoke test CLI on example data
         run: |
           fueltrack --help
+          fueltrack data.example.csv --out outputs
